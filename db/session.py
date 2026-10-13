@@ -35,6 +35,9 @@ def verify_password(password: str, stored_hash: str) -> bool:
         return False
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///nagpur_estates.db").strip()
+# Handle older 'postgres://' scheme provided by platforms like Railway/Heroku
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Configure engine
 connect_args = {}
