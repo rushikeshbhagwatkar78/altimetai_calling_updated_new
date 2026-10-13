@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nagpur Estates — AI Voice CRM Operating System</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/styles.css?v=20260912_02">
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased font-sans">
+
+  <!-- ========================================================================= -->
+  <!-- 1. AUTHENTICATION SCREEN -->
+  <!-- ========================================================================= -->
+  <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-8 transition-all">
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/30 mb-3">
+          NE
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Nagpur Estates</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">AI Voice CRM Operating System</p>
+      </div>
+
+      <div id="login-error-box" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-300 text-sm">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+        <span id="login-error-msg">Invalid email or password.</span>
+      </div>
+
+      <form id="login-form" onsubmit="App.handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5" for="login-email">Work Email</label>
+          <div class="relative">
+            <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="email" id="login-email" required class="crm-input pl-10" placeholder="admin@nagpurestates.com" value="admin@nagpurestates.com" autocomplete="username">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5" for="login-password">Password</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="password" id="login-password" required class="crm-input pl-10 pr-10" placeholder="••••••••" value="admin123" autocomplete="current-password">
+            <button type="button" onclick="App.togglePasswordVisibility('login-password')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Toggle password visibility">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="login-remember" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>Remember session</span>
+          </label>
+          <span class="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Gemini 3.1 Live
+          </span>
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="w-full crm-btn crm-btn-primary crm-btn-lg mt-2">
+          <span id="login-btn-text">Sign In to CRM</span>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+        <p class="text-xs text-slate-400 flex items-center justify-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i>
+          Token Authenticated & Encrypted Session
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. MAIN APP SHELL -->
+  <!-- ========================================================================= -->
+  <div id="app-main-container" class="app-root" style="display: none;">
+
+    <div id="mobile-sidebar-overlay" class="mobile-overlay" onclick="App.closeMobileSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="app-sidebar" class="app-sidebar">
+      <div class="sidebar-brand flex items-center justify-between px-5 py-4 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-base shadow-md shadow-indigo-500/20 flex-shrink-0">
+            NE
+          </div>
+          <div class="sidebar-text leading-tight">
+            <div class="font-bold text-slate-100 text-sm tracking-tight">Nagpur Estates</div>
+            <div class="text-[10px] font-semibold uppercase tracking-wider text-indigo-400">AI Voice CRM</div>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 hidden lg:block" onclick="App.toggleSidebarCollapse()" title="Toggle Sidebar Width">
+          <i data-lucide="chevrons-left" id="sidebar-collapse-icon" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto py-3 space-y-1">
+        <div class="sidebar-section-title">Workspace</div>
+        <nav class="space-y-0.5">
+          <a class="nav-item active" data-view="dashboard" onclick="App.navigate('dashboard')">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span class="sidebar-text">Dashboard</span>
+          </a>
+          <a class="nav-item" data-view="leads" onclick="App.navigate('leads')">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span class="sidebar-text">Leads Pipeline</span>
+            <span id="badge-leads-count" class="sidebar-badge ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-300">--</span>
+          </a>
+          <a class="nav-item" data-view="campaigns" onclick="App.navigate('campaigns')">
+            <i data-lucide="phone-outgoing" class="w-4 h-4"></i>
+            <span class="sidebar-text">Campaigns</span>
+          </a>
+          <a class="nav-item" data-view="calls" onclick="App.navigate('calls')">
+            <i data-lucide="phone-call" class="w-4 h-4"></i>
+            <span class="sidebar-text">Call History</span>
+          </a>
+          <a class="nav-item" data-view="properties" onclick="App.navigate('properties')">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+            <span class="sidebar-text">Properties</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-section-title">AI & Knowledge</div>
+        <nav class="space-y-0.5">
+          <a class="nav-item" data-view="knowledge-base" onclick="App.navigate('knowledge-base')">
+            <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i>
+            <span class="sidebar-text">AI Prompting Studio</span>
+          </a>
+          <a class="nav-item" data-view="playbooks" onclick="App.navigateToPlaybooks()">
+            <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+            <span class="sidebar-text">AI Scripts</span>
+            <span id="sidebar-playbooks-count" class="ml-auto px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 font-bold">3</span>
+          </a>
+          <a class="nav-item" data-view="rag-playground" onclick="App.navigate('rag-playground')">
+            <i data-lucide="database" class="w-4 h-4 text-amber-400"></i>
+            <span class="sidebar-text">RAG Playground</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-section-title">Operations</div>
+        <nav class="space-y-0.5">
+          <a class="nav-item" data-view="site-visits" onclick="App.navigate('site-visits')">
+            <i data-lucide="calendar-check" class="w-4 h-4"></i>
+            <span class="sidebar-text">Site Visits</span>
+          </a>
+          <a class="nav-item" data-view="follow-ups" onclick="App.navigate('follow-ups')">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+            <span class="sidebar-text">Follow-ups</span>
+            <span id="badge-callbacks-due" class="sidebar-badge ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300">--</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-section-title">Insights</div>
+        <nav class="space-y-0.5">
+          <a class="nav-item" data-view="analytics" onclick="App.navigate('analytics')">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+            <span class="sidebar-text">Analytics</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer p-4 border-t border-slate-800 bg-slate-950/50 space-y-3">
+        <div class="sidebar-agent-status p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div id="sidebar-pulse-dot" class="pulse-dot-green flex-shrink-0"></div>
+            <div class="sidebar-text">
+              <div class="text-xs font-semibold text-slate-200">AI Voice Agent</div>
+              <div id="sidebar-agent-status-label" class="text-[10px] text-emerald-400 font-medium">Operational</div>
+            </div>
+          </div>
+          <span class="sidebar-text text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">Priya</span>
+        </div>
+
+        <div class="sidebar-user-row flex items-center justify-between">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div id="sidebar-user-avatar" class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 ring-2 ring-indigo-500/30">
+              A
+            </div>
+            <div class="sidebar-user-details leading-tight min-w-0">
+              <div id="sidebar-user-name" class="font-semibold text-slate-200 text-xs truncate">Admin Manager</div>
+              <div id="sidebar-user-role" class="text-[10px] text-slate-400 truncate">Administrator</div>
+            </div>
+          </div>
+          <button onclick="App.handleLogout()" class="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors" title="Log Out">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="app-main">
+      <header class="app-header">
+        <div class="flex items-center gap-3">
+          <button class="lg:hidden crm-btn crm-btn-ghost crm-btn-icon" onclick="App.openMobileSidebar()" aria-label="Open Navigation">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 id="header-page-title" class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">CRM Dashboard</h1>
+            </div>
+            <p id="header-page-subtitle" class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Real estate sales command & outbound voice operations</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Command Palette Trigger -->
+          <button onclick="App.openCommandPalette()" class="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-slate-300 transition-colors">
+            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            <span>Search leads, calls, properties...</span>
+            <kbd class="font-mono text-[10px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5">Ctrl K</kbd>
+          </button>
+
+          <!-- Global Active Business Domain Selector -->
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm" title="Active Business Domain & Voice AI Persona">
+            <i data-lucide="briefcase" class="w-3.5 h-3.5 text-indigo-500"></i>
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 hidden xl:inline uppercase tracking-wider">Domain:</span>
+            <select id="topbar-domain-select" onchange="App.handleDomainChange(this.value)" class="bg-transparent text-xs font-bold text-slate-900 dark:text-white border-0 focus:ring-0 cursor-pointer pr-1 py-0.5">
+              <option value="real_estate">🏢 Real Estate (Nagpur Estates)</option>
+              <option value="clinic_hospital">🏥 Hospital & Clinic (CarePlus Clinic)</option>
+              <option value="ecommerce">🛍️ E-Commerce (NexStore Direct)</option>
+              <option value="education">🎓 Education (Apex Institute)</option>
+              <option value="general_business">💼 B2B Business (NexaCorp)</option>
+            </select>
+          </div>
+
+          <!-- Live Status Indicator -->
+          <div id="header-live-badge" class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="header-live-text">Live Operational</span>
+          </div>
+
+          <!-- Theme Toggle -->
+          <button id="theme-toggle-btn" onclick="App.toggleTheme()" class="crm-btn crm-btn-ghost crm-btn-icon" title="Toggle Light / Dark Mode">
+            <i data-lucide="moon" class="w-4 h-4"></i>
+          </button>
+
+          <!-- New Lead Action -->
+          <button onclick="App.openNewLeadModal()" class="crm-btn crm-btn-primary crm-btn-sm shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">New Lead</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- WORKSPACE VIEWS CONTAINER -->
+      <div class="app-content">
+
+        <!-- =================================================================== -->
+        <!-- VIEW 1: DASHBOARD -->
+        <!-- =================================================================== -->
+        <section id="view-dashboard" class="view-pane space-y-6">
+          <div class="p-6 rounded-2xl bg-gradient-to-r from-indigo-950 via-indigo-900 to-slate-900 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 border border-indigo-800/40">
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/30 text-indigo-200 text-xs font-medium mb-2 border border-indigo-400/20">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+                Gemini 3.1 Live Native Voice AI
+              </div>
+              <h2 class="text-xl sm:text-2xl font-bold">Good morning, <span id="dash-greeting-name">Admin</span></h2>
+              <p class="text-slate-300 text-xs sm:text-sm mt-1">Here is what's happening with your Nagpur real estate sales pipeline today.</p>
+            </div>
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <button onclick="App.openNewLeadModal()" class="crm-btn bg-white text-indigo-950 hover:bg-slate-100 font-semibold text-xs py-2 px-3.5 rounded-lg shadow">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                + New Lead
+              </button>
+              <button onclick="App.triggerCsvImportModal()" class="crm-btn bg-indigo-800/80 hover:bg-indigo-700 text-white text-xs py-2 px-3.5 rounded-lg border border-indigo-600/40">
+                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                Import CSV
+              </button>
+              <button onclick="App.navigate('leads')" class="crm-btn bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2 px-3.5 rounded-lg">
+                <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
+                Start Calling
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Cards Grid -->
+          <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+            <div class="kpi-card">
+              <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Total Leads</span>
+                <i data-lucide="users" class="w-4 h-4 text-indigo-500"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="kpi-total-leads">--</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Active CRM pipeline</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Hot Leads</span>
+                <i data-lucide="flame" class="w-4 h-4 text-red-500"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-red-600 dark:text-red-400" id="kpi-hot-leads">--</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">High purchase intent</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Total Calls</span>
+                <i data-lucide="phone-outgoing" class="w-4 h-4 text-blue-500"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="kpi-total-calls">--</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Outbound AI dials</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Connected</span>
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400" id="kpi-completed-calls">--</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Answered & completed</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Site Visits</span>
+                <i data-lucide="calendar" class="w-4 h-4 text-purple-500"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-purple-600 dark:text-purple-400" id="kpi-site-visits">--</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Booked site tours</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider">Conversion</span>
+                <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="kpi-conversion-rate">--%</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Lead-to-visit ratio</div>
+            </div>
+          </div>
+
+          <!-- Sales Pipeline Stage Stepper -->
+          <div class="crm-card">
+            <div class="crm-card-header">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">Sales Pipeline Progression</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Total volume distribution across qualification stages</p>
+              </div>
+              <button onclick="App.navigate('leads')" class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1">
+                <span>View Full Pipeline</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="p-4 sm:p-5 overflow-x-auto">
+              <div id="dash-pipeline-stepper" class="flex items-center gap-2.5 min-w-[720px]">
+                <!-- Dynamic Pipeline Cards -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Two-column Grid: Live Calling Monitor & Recent Activity -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Active AI Calling Monitor -->
+            <div class="crm-card lg:col-span-1 flex flex-col justify-between">
+              <div class="crm-card-header">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white">Live AI Voice Agent</h3>
+                </div>
+                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300">LiveKit SIP</span>
+              </div>
+              <div class="crm-card-body flex-1 flex flex-col justify-center items-center text-center p-6" id="dash-live-call-status-box">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3 shadow-inner">
+                  <i data-lucide="phone-forwarded" class="w-6 h-6"></i>
+                </div>
+                <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Outbound Calling System Ready</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed">Priya AI Voice agent is initialized and ready to dial contacts in Besa, Wardha Road, and Nagpur localities.</p>
+                <button onclick="App.navigate('leads')" class="crm-btn crm-btn-primary crm-btn-sm mt-4 shadow-sm">
+                  <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                  Dial Lead from Pipeline
+                </button>
+              </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="crm-card lg:col-span-2">
+              <div class="crm-card-header">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="activity" class="w-4 h-4 text-indigo-500"></i>
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white">Recent CRM Activity</h3>
+                </div>
+                <button onclick="App.loadDashboardData()" class="crm-btn crm-btn-ghost crm-btn-sm text-xs" title="Refresh Feed">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+              <div class="crm-table-container border-0 rounded-none max-h-[300px]">
+                <table class="crm-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Activity</th>
+                      <th>Details</th>
+                      <th>Lead</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-activity-rows">
+                    <tr><td colspan="4" class="text-center text-slate-400 py-6">Loading activities...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 2: LEADS PIPELINE -->
+        <!-- =================================================================== -->
+        <section id="view-leads" class="view-pane hidden space-y-4">
+          <div class="crm-card p-4 space-y-3">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <!-- Search -->
+              <div class="relative flex-1 max-w-md">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="lead-search-input" oninput="App.debounceFetchLeads()" class="crm-input pl-10" placeholder="Search by customer name, phone, locality...">
+              </div>
+
+              <!-- Filter Dropdowns -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <select id="lead-stage-filter" onchange="App.fetchLeads()" class="crm-select text-xs py-2 w-auto">
+                  <option value="all">All Stages</option>
+                  <option value="new">New</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="qualified">Qualified</option>
+                  <option value="property_matched">Property Matched</option>
+                  <option value="site_visit">Site Visit</option>
+                  <option value="won">Won</option>
+                  <option value="lost">Lost</option>
+                  <option value="dnd">DND</option>
+                </select>
+
+                <select id="lead-temp-filter" onchange="App.fetchLeads()" class="crm-select text-xs py-2 w-auto">
+                  <option value="all">All Temperatures</option>
+                  <option value="hot">🔥 Hot</option>
+                  <option value="warm">⚡ Warm</option>
+                  <option value="cold">❄️ Cold</option>
+                </select>
+
+                <select id="lead-loc-filter" onchange="App.fetchLeads()" class="crm-select text-xs py-2 w-auto">
+                  <option value="all">All Localities</option>
+                  <option value="Besa">Besa</option>
+                  <option value="Manish Nagar">Manish Nagar</option>
+                  <option value="Wardha Road">Wardha Road</option>
+                  <option value="Sonegaon">Sonegaon</option>
+                  <option value="MIHAN">MIHAN</option>
+                  <option value="Civil Lines">Civil Lines</option>
+                </select>
+
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+
+                <button onclick="App.triggerCsvImportModal()" class="crm-btn crm-btn-secondary crm-btn-sm" title="Import Leads from CSV">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                  <span class="hidden sm:inline">Import</span>
+                </button>
+
+                <a href="/api/leads/export" class="crm-btn crm-btn-secondary crm-btn-sm" title="Export Leads to CSV">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                  <span class="hidden sm:inline">Export</span>
+                </a>
+
+                <button onclick="App.openNewLeadModal()" class="crm-btn crm-btn-primary crm-btn-sm">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  <span>Add Lead</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Filter Chips -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs" id="lead-filter-chips">
+              <button onclick="App.setLeadQuickFilter('all')" id="chip-filter-all" class="chip-btn px-3 py-1 rounded-full font-medium border border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">All Leads (<span id="count-chip-all">0</span>)</button>
+              <button onclick="App.setLeadQuickFilter('hot')" id="chip-filter-hot" class="chip-btn px-3 py-1 rounded-full font-medium border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">🔥 Hot</button>
+              <button onclick="App.setLeadQuickFilter('warm')" id="chip-filter-warm" class="chip-btn px-3 py-1 rounded-full font-medium border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">⚡ Warm</button>
+              <button onclick="App.setLeadQuickFilter('site_visit')" id="chip-filter-site_visit" class="chip-btn px-3 py-1 rounded-full font-medium border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">📅 Site Visits</button>
+              <button onclick="App.setLeadQuickFilter('qualified')" id="chip-filter-qualified" class="chip-btn px-3 py-1 rounded-full font-medium border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Qualified</button>
+            </div>
+          </div>
+
+          <!-- Bulk Actions Floating Bar -->
+          <div id="leads-bulk-bar" class="hidden p-3 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+              <span id="bulk-selected-count">0</span> leads selected
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="App.callSelectedLeads()" class="crm-btn crm-btn-success crm-btn-sm text-xs">
+                <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                Call Selected
+              </button>
+              <a href="/api/leads/export" class="crm-btn crm-btn-secondary crm-btn-sm text-xs">
+                Export Selected
+              </a>
+              <button onclick="App.clearLeadSelection()" class="crm-btn crm-btn-ghost crm-btn-sm text-xs">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Leads Table -->
+          <div class="crm-table-container shadow-sm">
+            <table class="crm-table">
+              <thead>
+                <tr>
+                  <th class="w-10">
+                    <input type="checkbox" id="leads-select-all" onchange="App.toggleSelectAllLeads(this)" class="rounded text-indigo-600">
+                  </th>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Location & Requirement</th>
+                  <th>Budget</th>
+                  <th>Temperature</th>
+                  <th>Stage</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leads-table-rows">
+                <tr><td colspan="8" class="text-center text-slate-400 py-8">Loading leads...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 3: CAMPAIGNS & BATCH DIALING -->
+        <!-- =================================================================== -->
+        <section id="view-campaigns" class="view-pane hidden space-y-6">
+          <!-- 1. ALL CAMPAIGNS OVERVIEW -->
+          <div id="campaigns-list-container" class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">AI Outbound Calling Campaigns</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Launch automated AI dialing campaigns across segmented lead batches and track individual campaign leads.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="App.fetchCampaigns()" class="crm-btn crm-btn-secondary crm-btn-sm" title="Refresh Campaigns">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                  <span>Refresh</span>
+                </button>
+                <button onclick="App.openNewCampaignModal()" class="crm-btn crm-btn-primary crm-btn-sm">
+                  <i data-lucide="plus" class="w-4 h-4"></i>
+                  <span>+ Create Campaign</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Campaign Cards Grid -->
+            <div id="campaigns-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <!-- Dynamically populated via App.fetchCampaigns() -->
+              <div class="col-span-3 text-center text-slate-400 py-12">Loading campaigns...</div>
+            </div>
+          </div>
+
+          <!-- 2. SPECIFIC CAMPAIGN DETAIL & LEADS VIEW (Hidden by default) -->
+          <div id="campaign-detail-container" class="hidden space-y-6">
+            <!-- Breadcrumb Navigation -->
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+              <button onclick="App.backToCampaignsList()" class="crm-btn crm-btn-ghost crm-btn-sm text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1.5">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Back to All Campaigns</span>
+              </button>
+              <div class="flex items-center gap-2">
+                <span id="cmp-detail-status-pill" class="crm-badge crm-badge-success">● Ready</span>
+                <span id="cmp-detail-concurrency-pill" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">⚡ 2 Concurrent Lines</span>
+              </div>
+            </div>
+
+            <!-- Campaign Hero Header Card -->
+            <div class="crm-card p-6 bg-gradient-to-r from-indigo-900/10 via-slate-900/5 to-slate-900/10 border-indigo-200 dark:border-indigo-900">
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span id="cmp-detail-goal-tag" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">Site Visit Booking</span>
+                    <span id="cmp-detail-loc-tag" class="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Besa</span>
+                  </div>
+                  <h2 id="cmp-detail-title" class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Campaign Name</h2>
+                  <p id="cmp-detail-desc" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">Campaign description</p>
+                </div>
+
+                <!-- Campaign Action Buttons -->
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <button id="cmp-detail-start-btn" onclick="App.startActiveCampaign()" class="crm-btn crm-btn-success text-xs py-2 px-3.5 shadow-sm font-semibold">
+                    <i data-lucide="play" class="w-4 h-4"></i>
+                    <span>Start Batch Dialing</span>
+                  </button>
+                  <button id="cmp-detail-restart-btn" onclick="App.restartActiveCampaign()" class="crm-btn crm-btn-primary text-xs py-2 px-3.5 shadow-sm font-semibold hidden">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span>Restart Campaign</span>
+                  </button>
+                  <button id="cmp-detail-pause-btn" onclick="App.pauseActiveCampaign()" class="crm-btn crm-btn-secondary text-xs py-2 px-3.5 hidden">
+                    <i data-lucide="pause" class="w-4 h-4"></i>
+                    <span>Pause Dialing</span>
+                  </button>
+                  <button id="cmp-detail-redial-btn" onclick="App.redialFailedLeads()" class="crm-btn crm-btn-secondary text-xs py-2 px-3.5 font-medium hidden">
+                    <i data-lucide="phone-forwarded" class="w-4 h-4"></i>
+                    <span>Redial Failed / Dropped</span>
+                  </button>
+                  <button onclick="App.openLiveCampaignMonitor(AppState.activeCampaignId)" class="crm-btn crm-btn-secondary text-xs py-2 px-3.5 font-medium" title="Open Live Real-Time Concurrency Monitor">
+                    <i data-lucide="activity" class="w-4 h-4 text-indigo-500"></i>
+                    <span>Live Monitor</span>
+                  </button>
+                  <button onclick="App.openCampaignAddLeadsModal()" class="crm-btn crm-btn-secondary text-xs py-2 px-3.5 font-medium">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>+ Add Existing Leads</span>
+                  </button>
+                  <button onclick="App.openCampaignCsvImportModal()" class="crm-btn crm-btn-secondary text-xs py-2 px-3.5 font-medium">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    <span>Import CSV</span>
+                  </button>
+                  <button onclick="App.deleteActiveCampaign()" class="crm-btn crm-btn-ghost text-xs py-2 px-3 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40" title="Delete this campaign">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Campaign KPI Metric Cards -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <div class="text-[11px] text-slate-500 font-medium">Total Leads</div>
+                  <div id="cmp-stat-total" class="text-xl font-bold text-slate-900 dark:text-white mt-0.5">0</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <div class="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Ready to Call</div>
+                  <div id="cmp-stat-ready" class="text-xl font-bold text-slate-700 dark:text-slate-300 mt-0.5">0</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <div class="text-[11px] text-indigo-600 font-medium">In Progress</div>
+                  <div id="cmp-stat-calling" class="text-xl font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">0</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <div class="text-[11px] text-emerald-600 font-medium">Completed Calls</div>
+                  <div id="cmp-stat-completed" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">0</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <div class="text-[11px] text-amber-600 font-medium">Ended in Middle</div>
+                  <div id="cmp-stat-dropped" class="text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5">0</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <div class="text-[11px] text-red-600 font-medium">Unreachable / Failed</div>
+                  <div id="cmp-stat-failed" class="text-xl font-bold text-red-600 dark:text-red-400 mt-0.5">0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Campaign Leads Table Header & Filter -->
+            <div class="crm-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <div class="relative w-64">
+                  <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                  <input type="text" id="cmp-lead-search" oninput="App.filterCampaignLeadsTable()" placeholder="Search leads in this campaign..." class="crm-input pl-8 py-1.5 text-xs">
+                </div>
+                <select id="cmp-lead-status-filter" onchange="App.filterCampaignLeadsTable()" class="crm-select text-xs py-1.5 w-auto">
+                  <option value="all">All Dialing Statuses</option>
+                  <option value="ready">Ready to Call</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="ended_in_middle">Ended in Middle</option>
+                  <option value="failed">Unreachable / Failed</option>
+                </select>
+              </div>
+
+              <div class="text-xs text-slate-500 font-medium">
+                Showing <strong id="cmp-leads-filtered-count" class="text-slate-900 dark:text-white">0</strong> leads in this campaign
+              </div>
+            </div>
+
+            <!-- Dedicated Leads Table For Current Campaign -->
+            <div class="crm-table-container shadow-sm">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Locality & Requirement</th>
+                    <th>Dial Status</th>
+                    <th>Call Timing & Duration</th>
+                    <th>Outcome / Activity</th>
+                    <th>Attempts</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="campaign-leads-rows">
+                  <tr><td colspan="8" class="text-center text-slate-400 py-10">No leads attached to this campaign yet. Click "+ Add Existing Leads" or "Import CSV to Campaign" above.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 4: PROPERTIES -->
+        <!-- =================================================================== -->
+        <section id="view-properties" class="view-pane hidden space-y-4">
+          <div class="crm-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="prop-location-filter" onchange="App.fetchProperties()" class="crm-select text-xs py-2 w-auto">
+                <option value="all">All Localities</option>
+                <option value="Besa">Besa</option>
+                <option value="Manish Nagar">Manish Nagar</option>
+                <option value="Wardha Road">Wardha Road</option>
+                <option value="Sonegaon">Sonegaon</option>
+                <option value="MIHAN">MIHAN</option>
+                <option value="Civil Lines">Civil Lines</option>
+              </select>
+
+              <select id="prop-type-filter" onchange="App.fetchProperties()" class="crm-select text-xs py-2 w-auto">
+                <option value="all">All Property Types</option>
+                <option value="Flat">Flat</option>
+                <option value="Plot">Plot</option>
+                <option value="Luxury Apartment">Luxury Apartment</option>
+              </select>
+            </div>
+
+            <button onclick="App.openNewPropertyModal()" class="crm-btn crm-btn-primary crm-btn-sm">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              + Add Property
+            </button>
+          </div>
+
+          <!-- Properties Grid -->
+          <div id="properties-grid-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <!-- Dynamic Property Cards -->
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 5: AI PROMPTING & AGENT TRAINING STUDIO -->
+        <!-- =================================================================== -->
+        <section id="view-knowledge-base" class="view-pane hidden space-y-6">
+          <!-- Top Studio Header & Global Controls -->
+          <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-800/40 text-white shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2.5 mb-1.5 flex-wrap">
+                <div class="p-2 rounded-xl bg-indigo-600/30 text-indigo-400 border border-indigo-500/40">
+                  <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </div>
+                <h2 class="text-xl font-black tracking-tight text-white">AI Prompting & Training Studio</h2>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Gemini 3.1 Live Native</span>
+                <span id="studio-status-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span id="studio-active-persona-text">Priya • Aoede • Temp 0.6</span>
+                </span>
+              </div>
+              <p class="text-xs text-indigo-200/80 max-w-2xl leading-relaxed">
+                Configure your AI agent for any business domain (Real Estate, Healthcare Clinic, E-Commerce, Education). Select Gemini voices with automatic Hindi/Hinglish gender grammatical alignment, opening greetings, and custom dialogue playbooks.
+              </p>
+            </div>
+            
+            <div class="flex items-center gap-2.5 flex-wrap shrink-0">
+              <!-- Multi-Domain Selector Dropdown -->
+              <div class="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-indigo-500/50 shadow-inner">
+                <label class="text-[11px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
+                  <i data-lucide="briefcase" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  Domain:
+                </label>
+                <select id="studio-domain-select" onchange="App.handleDomainChange(this.value)" class="bg-transparent text-xs font-bold text-white border-0 focus:ring-0 cursor-pointer pr-1">
+                  <option value="real_estate" class="bg-slate-900 text-white">🏢 Real Estate Sales</option>
+                  <option value="clinic_hospital" class="bg-slate-900 text-white">🏥 Hospital & Clinic</option>
+                  <option value="ecommerce" class="bg-slate-900 text-white">🛍️ E-Commerce Support</option>
+                  <option value="education" class="bg-slate-900 text-white">🎓 Education & Admissions</option>
+                  <option value="general_business" class="bg-slate-900 text-white">💼 General Business / B2B</option>
+                </select>
+              </div>
+
+              <button onclick="App.resetAgentConfig()" class="crm-btn bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 crm-btn-sm text-xs font-semibold" title="Reset all prompts and voices to active domain defaults">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                Reset Defaults
+              </button>
+              <button onclick="App.switchStudioTab('preview')" class="crm-btn bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 border border-indigo-700/60 crm-btn-sm text-xs font-semibold">
+                <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+                Live Sandbox
+              </button>
+              <button onclick="App.saveAgentConfig()" class="crm-btn crm-btn-primary crm-btn-sm text-xs font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span>Save All Changes</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Studio Navigation Tabs -->
+          <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
+            <button id="studio-tab-persona" onclick="App.switchStudioTab('persona')" class="studio-nav-btn active text-xs font-bold px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="user-check" class="w-4 h-4"></i>
+              <span>Identity & Voice</span>
+            </button>
+            <button id="studio-tab-greetings" onclick="App.switchStudioTab('greetings')" class="studio-nav-btn text-xs font-medium px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="message-square" class="w-4 h-4"></i>
+              <span>Opening Greetings</span>
+            </button>
+            <button id="studio-tab-funnel" onclick="App.switchStudioTab('funnel')" class="studio-nav-btn text-xs font-medium px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="git-merge" class="w-4 h-4"></i>
+              <span>Funnel & Philosophy</span>
+            </button>
+            <button id="studio-tab-scripts" onclick="App.switchStudioTab('scripts')" class="studio-nav-btn text-xs font-medium px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+              <span>AI Scripts & Playbooks</span>
+              <span id="kb-scripts-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-200 font-bold">0</span>
+            </button>
+            <button id="studio-tab-docs" onclick="App.switchStudioTab('docs')" class="studio-nav-btn text-xs font-medium px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="files" class="w-4 h-4"></i>
+              <span>Brochures & Docs</span>
+              <span id="kb-docs-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">0</span>
+            </button>
+            <button id="studio-tab-preview" onclick="App.switchStudioTab('preview')" class="studio-nav-btn text-xs font-medium px-3.5 py-2 rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="terminal" class="w-4 h-4"></i>
+              <span>Live Prompt Sandbox</span>
+            </button>
+          </div>
+
+          <!-- PANE 1: IDENTITY & VOICE -->
+          <div id="studio-pane-persona" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Left 2 Cols: Persona details -->
+              <div class="lg:col-span-2 space-y-5">
+                <div class="crm-card p-5 space-y-4">
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="user" class="w-4 h-4 text-indigo-500"></i>
+                    <span>Agent Identity & Organization</span>
+                  </h3>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Agent Spoken Name</label>
+                      <input type="text" id="studio-agent-name" class="crm-input" placeholder="e.g. Priya / Parth" value="Priya">
+                      <p class="text-[10px] text-slate-400 mt-1">Spoken identity on live calls.</p>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Grammar & Pronouns</label>
+                      <select id="studio-gender-select" onchange="App.handleGenderChange(this.value)" class="crm-input font-semibold text-xs">
+                        <option value="female">♀ Female ("bol rahi hoon", "karungi")</option>
+                        <option value="male">♂ Male ("bol raha hoon", "karunga")</option>
+                      </select>
+                      <p class="text-[10px] text-slate-400 mt-1">Auto-syncs Hindi/Hinglish conjugations.</p>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Company / Organization</label>
+                      <input type="text" id="studio-company-name" class="crm-input" placeholder="e.g. Nagpur Estates" value="Nagpur Estates">
+                      <p class="text-[10px] text-slate-400 mt-1">Business or firm represented.</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Persona Description & Stance</label>
+                    <textarea id="studio-role-desc" rows="3" class="crm-input font-mono text-xs" placeholder="an exceptionally warm, friendly, natural, and articulate real-estate sales advisor calling from {company_name}..."></textarea>
+                    <p class="text-[10px] text-slate-400 mt-1">Sets the fundamental attitude, energy, and background of the sales advisor.</p>
+                  </div>
+                </div>
+
+                <!-- Voice Selection Cards -->
+                <div class="crm-card p-5 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="mic" class="w-4 h-4 text-indigo-500"></i>
+                        <span>Gemini Live Native Voice</span>
+                      </h3>
+                      <p class="text-xs text-slate-500 dark:text-slate-400">Select the official Google Gemini Live voice model profile.</p>
+                    </div>
+                    <span id="studio-selected-voice-tag" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">Aoede</span>
+                  </div>
+
+                  <div id="studio-voices-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Populated dynamically by App.renderVoiceCards() -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right 1 Col: Temperature, Language & Advanced -->
+              <div class="space-y-5">
+                <div class="crm-card p-5 space-y-4">
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4 text-indigo-500"></i>
+                    <span>Acoustic & Creative Settings</span>
+                  </h3>
+
+                  <!-- Temperature Slider -->
+                  <div>
+                    <div class="flex items-center justify-between text-xs font-semibold mb-1">
+                      <span class="text-slate-700 dark:text-slate-300">Temperature</span>
+                      <span id="studio-temp-display" class="font-mono text-indigo-600 dark:text-indigo-400 font-bold">0.60</span>
+                    </div>
+                    <input type="range" id="studio-temperature" min="0.0" max="1.0" step="0.05" value="0.6" class="w-full accent-indigo-600" oninput="document.getElementById('studio-temp-display').innerText = parseFloat(this.value).toFixed(2)">
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                      <span>0.2 (Rigid)</span>
+                      <span>0.6 (Recommended)</span>
+                      <span>1.0 (Creative)</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 leading-tight">
+                      <strong>0.6</strong> balances high conversational warmth with strict adherence to property inventory facts.
+                    </p>
+                  </div>
+
+                  <!-- Language Mode -->
+                  <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Language Style</label>
+                    <select id="studio-language-mode" class="crm-input">
+                      <option value="hinglish">Hinglish (Hindi + English) — Native Indian</option>
+                      <option value="hindi">Pure Hindi (शुद्ध हिंदी)</option>
+                      <option value="english">Indian English (Professional)</option>
+                      <option value="marathi_hinglish">Marathi + Hinglish (Nagpur Local)</option>
+                    </select>
+                    <p class="text-[10px] text-slate-400 mt-1">Agent automatically mirrors customer's chosen language.</p>
+                  </div>
+                </div>
+
+                <!-- Custom Prompt Override Notice -->
+                <div class="crm-card p-5 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/30 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-900/50">
+                  <div class="flex items-start gap-2.5">
+                    <i data-lucide="code" class="w-4 h-4 text-indigo-500 shrink-0 mt-0.5"></i>
+                    <div>
+                      <h4 class="text-xs font-bold text-slate-900 dark:text-white">Dynamic Variables Supported</h4>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        Use <code class="px-1 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 font-mono text-[10px]">{customer_name}</code>, <code class="px-1 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 font-mono text-[10px]">{agent_name}</code>, <code class="px-1 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 font-mono text-[10px]">{company_name}</code> in greetings or scripts to have them replaced dynamically on every call.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 2: OPENING GREETINGS -->
+          <div id="studio-pane-greetings" class="space-y-5 hidden">
+            <div class="crm-card p-5 space-y-5">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <i data-lucide="message-square" class="w-4 h-4 text-indigo-500"></i>
+                  <span>Opening Utterances & Identity Verification</span>
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  The AI delivers these lines in under 450ms as soon as the lead answers the phone.
+                </p>
+              </div>
+
+              <!-- Known Lead Greeting -->
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>1. When Lead's Name is Known (e.g. Rahul Sharma)</span>
+                  </label>
+                  <span class="text-[10px] text-slate-400 font-mono">Variables: {customer_name}</span>
+                </div>
+                <textarea id="studio-greeting-known" rows="2" class="crm-input font-mono text-xs" placeholder="Namaste, kya meri baat {customer_name} ji se ho rahi hai?"></textarea>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  Polite opening question to verify identity before pitching.
+                </p>
+              </div>
+
+              <!-- Unknown / Generic Lead Greeting -->
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span>2. When Lead's Name is Unknown / Generic Lead</span>
+                  </label>
+                  <span class="text-[10px] text-slate-400 font-mono">Variables: {agent_name}, {company_name}</span>
+                </div>
+                <textarea id="studio-greeting-unknown" rows="2" class="crm-input font-mono text-xs" placeholder="Namaste ji, main {agent_name} bol rahi hoon {company_name} se. Aapne property enquiry ki thi. Kya abhi do minute baat ho sakti hai?"></textarea>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  Warm introductory pitch used when customer name is absent in database.
+                </p>
+              </div>
+
+              <!-- Wrong Number Recovery Pivot -->
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span>3. Wrong Number Sales Pivot Script</span>
+                  </label>
+                  <span class="text-[10px] text-slate-400 font-mono">Conversion Salvage</span>
+                </div>
+                <textarea id="studio-wrong-number" rows="3" class="crm-input font-mono text-xs" placeholder="Achha, koi baat nahi ji! Darasal hume is number par {customer_name} ji ke naam se Nagpur mein property ki enquiry aayi thi..."></textarea>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  If the person says "Wrong number" or "I am not Rahul", Priya delivers this polite pivot to salvage the lead.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 3: SALES FUNNEL & PHILOSOPHY -->
+          <div id="studio-pane-funnel" class="space-y-5 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <!-- Funnel Stages -->
+              <div class="crm-card p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="git-merge" class="w-4 h-4 text-indigo-500"></i>
+                    <span>5-Step Conversion Funnel</span>
+                  </h3>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">Sales Script</span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400">The structured path Priya guides the customer through to book a site visit.</p>
+                <textarea id="studio-funnel-stages" rows="14" class="crm-input font-mono text-[11px] leading-relaxed"></textarea>
+              </div>
+
+              <!-- Philosophy & Guardrails -->
+              <div class="space-y-5">
+                <div class="crm-card p-5 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                      <i data-lucide="sparkles" class="w-4 h-4 text-indigo-500"></i>
+                      <span>Human Conversational Philosophy</span>
+                    </h3>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400">Fillers & Warmth</span>
+                  </div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Speech pacing, backchannels ('Haan ji', 'Achha', 'Hmm'), and emotional empathy.</p>
+                  <textarea id="studio-philosophy" rows="7" class="crm-input font-mono text-[11px] leading-relaxed"></textarea>
+                </div>
+
+                <div class="crm-card p-5 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                      <i data-lucide="shield-alert" class="w-4 h-4 text-indigo-500"></i>
+                      <span>Objection Guardrails & Edge Cases</span>
+                    </h3>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400">Guardrails</span>
+                  </div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Rules for WhatsApp requests, busy leads, DND requests, and bot inquiries.</p>
+                  <textarea id="studio-guardrails" rows="7" class="crm-input font-mono text-[11px] leading-relaxed"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 4: AI SCRIPTS & MODULAR PLAYBOOKS -->
+          <div id="studio-pane-scripts" class="space-y-4 hidden">
+            <!-- Header Toolbar -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-slate-50 to-indigo-50/50 dark:from-slate-900/90 dark:to-indigo-950/30 border border-slate-200 dark:border-indigo-900/40 shadow-sm">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="p-1.5 rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-500/30">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                  </span>
+                  <h3 class="text-base font-bold text-slate-900 dark:text-white">AI Training Scripts & Spoken Playbooks</h3>
+                  <span id="scripts-active-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/60">
+                    ● Active on Calls
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
+                  Add, update, or upload spoken scripts to train the agent. Active playbooks automatically inject into the Gemini 3.1 Live prompt during real-time calls.
+                </p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap shrink-0">
+                <button onclick="App.openNewScriptModal()" class="crm-btn crm-btn-primary crm-btn-sm text-xs font-bold shadow-md shadow-indigo-500/20 flex items-center gap-1.5">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                  <span>+ Add AI Script</span>
+                </button>
+                <button onclick="App.triggerScriptUpload()" class="crm-btn crm-btn-secondary crm-btn-sm text-xs font-semibold flex items-center gap-1.5">
+                  <i data-lucide="file-up" class="w-4 h-4"></i>
+                  <span>Upload File (.txt/.md/.pdf)</span>
+                </button>
+                <button onclick="App.switchStudioTab('preview')" class="crm-btn bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60 crm-btn-sm text-xs font-semibold flex items-center gap-1.5" title="Inspect compiled system prompt with active scripts in Sandbox">
+                  <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+                  <span>View Prompt Effect</span>
+                </button>
+                <input type="file" id="script-file-input" style="display: none;" onchange="App.uploadScriptFile(event)" accept=".txt,.md,.doc,.docx,.pdf">
+              </div>
+            </div>
+
+            <!-- Filter & Search Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0" id="script-category-filters">
+                <button onclick="App.filterScriptsByCategory('all')" id="script-cat-btn-all" class="script-cat-pill active px-3 py-1 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                  All
+                </button>
+                <button onclick="App.filterScriptsByCategory('conversation_script')" id="script-cat-btn-conversation_script" class="script-cat-pill px-3 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent">
+                  Sales Scripts
+                </button>
+                <button onclick="App.filterScriptsByCategory('objections')" id="script-cat-btn-objections" class="script-cat-pill px-3 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent">
+                  Objections
+                </button>
+                <button onclick="App.filterScriptsByCategory('fillers')" id="script-cat-btn-fillers" class="script-cat-pill px-3 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent">
+                  Fillers & Tone
+                </button>
+                <button onclick="App.filterScriptsByCategory('identity_verification')" id="script-cat-btn-identity_verification" class="script-cat-pill px-3 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent">
+                  Verification
+                </button>
+                <button onclick="App.filterScriptsByCategory('persona')" id="script-cat-btn-persona" class="script-cat-pill px-3 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent">
+                  Persona
+                </button>
+                <button onclick="App.filterScriptsByCategory('primary')" id="script-cat-btn-primary" class="script-cat-pill px-3 py-1 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
+                  <i data-lucide="star" class="w-3 h-3 text-amber-500 fill-amber-500"></i>
+                  Primary
+                </button>
+              </div>
+
+              <div class="relative w-full sm:w-64">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
+                <input type="text" id="script-search-input" oninput="App.handleScriptSearch(this.value)" placeholder="Search scripts..." class="crm-input pl-8 py-1.5 text-xs w-full">
+              </div>
+            </div>
+
+            <!-- Scripts Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="kb-scripts-container">
+              <div class="col-span-full text-center text-slate-400 py-8">Loading AI training playbooks...</div>
+            </div>
+          </div>
+
+          <!-- PANE 5: BROCHURES TABLE -->
+          <div id="studio-pane-docs" class="crm-card hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Property Brochures & Knowledge Documents</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Indexed into vector storage for real-time RAG property inquiries.</p>
+              </div>
+              <button onclick="App.triggerDocUpload()" class="crm-btn crm-btn-primary crm-btn-sm text-xs font-semibold">
+                <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                Upload Brochure
+              </button>
+              <input type="file" id="doc-file-input" style="display: none;" onchange="App.uploadDocFile(event)" accept=".pdf,.docx,.doc,.txt,.md,.csv">
+            </div>
+            <div class="crm-table-container border-0 rounded-none">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th>Document Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Chunks</th>
+                    <th>Vectors</th>
+                    <th>Uploaded Date</th>
+                  </tr>
+                </thead>
+                <tbody id="kb-documents-rows">
+                  <tr><td colspan="6" class="text-center text-slate-400 py-6">Loading documents...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PANE 6: LIVE PROMPT SANDBOX -->
+          <div id="studio-pane-preview" class="space-y-4 hidden">
+            <div class="crm-card p-5 space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="terminal" class="w-4 h-4 text-amber-500"></i>
+                    <span>Real-Time Prompt Compiler Sandbox</span>
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Inspect the exact compiled instructions Gemini 3.1 Live receives when a call initiates.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input type="text" id="studio-preview-test-customer" class="crm-input text-xs w-48" placeholder="Lead name" value="Rahul Sharma">
+                  <button onclick="App.fetchPromptPreview()" class="crm-btn crm-btn-primary crm-btn-sm text-xs font-bold whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    Compile Preview
+                  </button>
+                </div>
+              </div>
+
+              <!-- Metrics row -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                  <div class="text-[10px] text-slate-400 uppercase font-bold">Characters</div>
+                  <div id="preview-stat-chars" class="text-base font-black text-slate-800 dark:text-slate-100 font-mono">--</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                  <div class="text-[10px] text-slate-400 uppercase font-bold">Words</div>
+                  <div id="preview-stat-words" class="text-base font-black text-indigo-600 dark:text-indigo-400 font-mono">--</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                  <div class="text-[10px] text-slate-400 uppercase font-bold">Estimated Tokens</div>
+                  <div id="preview-stat-tokens" class="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">--</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                  <div class="text-[10px] text-slate-400 uppercase font-bold">Voice & Temp</div>
+                  <div id="preview-stat-voice" class="text-xs font-black text-amber-600 dark:text-amber-400 mt-1">Aoede (0.60)</div>
+                </div>
+              </div>
+
+              <!-- Opening Spoken Sentence -->
+              <div class="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+                <div class="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                  <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                  First Opening Utterance (Sub-450ms Zero-Latency Trigger):
+                </div>
+                <div id="preview-opening-speech" class="text-xs font-semibold text-emerald-900 dark:text-emerald-100 italic">
+                  "Namaste, kya meri baat Rahul Sharma ji se ho rahi hai?"
+                </div>
+              </div>
+
+              <!-- Full Prompt Preview Box -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Assembled System Prompt (Live Gemini Instructions)</span>
+                  <button onclick="navigator.clipboard.writeText(document.getElementById('preview-prompt-text').innerText); App.showToast('success', 'Prompt copied to clipboard!');" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                    <i data-lucide="copy" class="w-3 h-3"></i> Copy Prompt
+                  </button>
+                </div>
+                <pre id="preview-prompt-text" class="p-4 rounded-xl bg-slate-950 text-slate-200 border border-slate-800 font-mono text-[11px] leading-relaxed max-h-[500px] overflow-y-auto whitespace-pre-wrap select-all">Loading prompt preview...</pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 6: RAG PLAYGROUND -->
+        <!-- =================================================================== -->
+        <section id="view-rag-playground" class="view-pane hidden space-y-6">
+          <div class="crm-card p-6">
+            <div class="flex items-center gap-2 mb-2">
+              <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white">RAG Vector Retrieval Sandbox</h2>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              Test queries against ChromaDB embeddings to inspect chunk matches and similarity scores.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-2.5 mb-3">
+              <input type="text" id="rag-test-query" class="crm-input flex-1" placeholder="e.g. Besa mein 2 BHK 50 lakh ke andar ya Greenwood Meadows amenities...">
+              <button onclick="App.testRagSearch()" class="crm-btn crm-btn-primary whitespace-nowrap">
+                <i data-lucide="search" class="w-4 h-4"></i>
+                Search Vectors
+              </button>
+            </div>
+
+            <!-- Sample Query Chips -->
+            <div class="flex items-center gap-2 mb-4 overflow-x-auto text-xs text-slate-500">
+              <span class="font-semibold">Quick tests:</span>
+              <button onclick="App.setRagQuery('Besa mein 2 BHK flat under 55 Lakhs')" class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Besa 2 BHK 55L</button>
+              <button onclick="App.setRagQuery('Greenwood Meadows amenities and possession date')" class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Greenwood Amenities</button>
+              <button onclick="App.setRagQuery('Plots near Wardha Road and MIHAN')" class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Wardha Road Plots</button>
+            </div>
+
+            <div id="rag-test-results" class="space-y-3 min-h-[140px] p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500">
+              Enter a query above to test hybrid vector search.
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 7: CALL HISTORY -->
+        <!-- =================================================================== -->
+        <section id="view-calls" class="view-pane hidden space-y-4">
+          <div class="crm-card p-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <select id="call-status-filter" onchange="App.fetchCalls()" class="crm-select text-xs py-2 w-auto">
+                <option value="all">All Statuses</option>
+                <option value="completed">Completed</option>
+                <option value="in_progress">In Progress</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+
+            <button onclick="App.fetchCalls()" class="crm-btn crm-btn-secondary crm-btn-sm">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              Refresh
+            </button>
+          </div>
+
+          <div class="crm-table-container shadow-sm">
+            <table class="crm-table">
+              <thead>
+                <tr>
+                  <th>Call ID</th>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Duration</th>
+                  <th>Greeting Latency</th>
+                  <th>Avg Latency</th>
+                  <th>Outcome</th>
+                  <th class="text-right">Transcript</th>
+                </tr>
+              </thead>
+              <tbody id="calls-table-rows">
+                <tr><td colspan="8" class="text-center text-slate-400 py-8">Loading calls...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 8: SITE VISITS -->
+        <!-- =================================================================== -->
+        <section id="view-site-visits" class="view-pane hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Scheduled Property Site Visits</h2>
+            <button onclick="App.openBookVisitModalDirect()" class="crm-btn crm-btn-primary crm-btn-sm">
+              <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i>
+              Book Site Visit
+            </button>
+          </div>
+
+          <div class="crm-table-container shadow-sm">
+            <table class="crm-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Location</th>
+                  <th>Date & Time</th>
+                  <th>Status</th>
+                  <th>Salesperson</th>
+                  <th class="text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="site-visits-rows">
+                <tr><td colspan="7" class="text-center text-slate-400 py-8">Loading site visits...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 9: FOLLOW-UPS -->
+        <!-- =================================================================== -->
+        <section id="view-follow-ups" class="view-pane hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Follow-ups & Scheduled Callbacks</h2>
+            <button onclick="App.openScheduleCallbackModalDirect()" class="crm-btn crm-btn-primary crm-btn-sm">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              Schedule Callback
+            </button>
+          </div>
+
+          <div class="crm-table-container shadow-sm">
+            <table class="crm-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Scheduled Time</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th class="text-right">Call</th>
+                </tr>
+              </thead>
+              <tbody id="callbacks-rows">
+                <tr><td colspan="6" class="text-center text-slate-400 py-8">Loading callbacks...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 10: ANALYTICS -->
+        <!-- =================================================================== -->
+        <section id="view-analytics" class="view-pane hidden space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="crm-card p-5">
+              <div class="text-xs font-semibold text-slate-500 mb-1">Average Call Latency</div>
+              <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400" id="analytics-avg-lat">-- ms</div>
+              <div class="text-xs text-slate-400 mt-1">P50: ~420ms | P90: ~680ms</div>
+            </div>
+
+            <div class="crm-card p-5">
+              <div class="text-xs font-semibold text-slate-500 mb-1">Average Call Duration</div>
+              <div class="text-2xl font-bold text-slate-900 dark:text-white" id="analytics-avg-dur">-- s</div>
+              <div class="text-xs text-slate-400 mt-1">Target: &lt; 180s for qualification</div>
+            </div>
+
+            <div class="crm-card p-5">
+              <div class="text-xs font-semibold text-slate-500 mb-1">Top Demand Locality</div>
+              <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400" id="analytics-top-loc">Besa</div>
+              <div class="text-xs text-slate-400 mt-1">Followed by Wardha Road</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="crm-card p-6">
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-4">Lead Conversion Funnel</h3>
+              <div id="analytics-funnel-container" class="space-y-3">
+                <!-- Funnel Bars -->
+              </div>
+            </div>
+
+            <div class="crm-card p-6">
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-4">Demand by Nagpur Locality</h3>
+              <div id="analytics-locality-container" class="space-y-3">
+                <!-- Locality Breakdown -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. DRAWERS & MODALS -->
+  <!-- ========================================================================= -->
+
+  <!-- Lead Detail Right-Side Drawer -->
+  <div id="drawer-lead-backdrop" class="crm-drawer-backdrop" onclick="App.closeLeadDrawer()"></div>
+  <aside id="drawer-lead" class="crm-drawer">
+    <div class="crm-drawer-header">
+      <div>
+        <h3 id="drawer-lead-name" class="font-bold text-base text-slate-900 dark:text-white">Lead Details</h3>
+        <p id="drawer-lead-phone" class="text-xs font-mono text-slate-500 mt-0.5">+91 ••••••••••</p>
+      </div>
+      <button onclick="App.closeLeadDrawer()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="crm-drawer-body space-y-5">
+      <!-- Quick Action Buttons -->
+      <div class="grid grid-cols-2 gap-2">
+        <button id="drawer-call-btn" onclick="App.callLeadFromDrawer()" class="crm-btn crm-btn-success text-xs font-semibold py-2.5">
+          <i data-lucide="phone" class="w-4 h-4"></i>
+          Call Now
+        </button>
+        <button onclick="App.openBookVisitModalFromDrawer()" class="crm-btn crm-btn-secondary text-xs font-semibold py-2.5">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+          Book Site Visit
+        </button>
+      </div>
+
+      <!-- Requirements & Status -->
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Requirements & State</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><span class="text-slate-400">Locality:</span> <strong id="drawer-lead-loc" class="text-slate-800 dark:text-slate-200 block">--</strong></div>
+          <div><span class="text-slate-400">Configuration:</span> <strong id="drawer-lead-bhk" class="text-slate-800 dark:text-slate-200 block">--</strong></div>
+          <div><span class="text-slate-400">Max Budget:</span> <strong id="drawer-lead-budget" class="text-emerald-600 dark:text-emerald-400 block font-semibold">--</strong></div>
+          <div><span class="text-slate-400">Stage:</span> <strong id="drawer-lead-stage" class="text-slate-800 dark:text-slate-200 block capitalize">--</strong></div>
+        </div>
+      </div>
+
+      <!-- Notes Timeline -->
+      <div class="space-y-3">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">CRM Notes</div>
+        <div class="flex gap-2">
+          <input type="text" id="drawer-new-note" class="crm-input text-xs" placeholder="Add a note (e.g. customer prefers weekend visit)...">
+          <button onclick="App.saveLeadNote()" class="crm-btn crm-btn-primary crm-btn-sm text-xs">Save</button>
+        </div>
+        <div id="drawer-notes-list" class="space-y-2 max-h-48 overflow-y-auto">
+          <!-- Dynamic notes -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Call Transcript Modal -->
+  <div id="modal-call-detail" class="crm-modal-backdrop">
+    <div class="crm-modal max-w-2xl max-h-[85vh] flex flex-col">
+      <div class="crm-card-header">
+        <div>
+          <h3 class="font-bold text-sm text-slate-900 dark:text-white" id="call-modal-title">Call Transcript & Overview</h3>
+          <p class="text-xs text-slate-500" id="call-modal-meta">--</p>
+        </div>
+        <button onclick="App.closeModal('modal-call-detail')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">AI Executive Summary</div>
+          <p class="text-xs text-slate-700 dark:text-slate-300" id="call-modal-summary">--</p>
+        </div>
+        
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Speaker Transcript</div>
+        <div id="call-modal-transcript" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+          <!-- Transcript turns -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Lead Modal -->
+  <div id="modal-new-lead" class="crm-modal-backdrop">
+    <div class="crm-modal">
+      <div class="crm-card-header">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white">Create New Lead</h3>
+        <button onclick="App.closeModal('modal-new-lead')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form onsubmit="App.handleCreateLeadSubmit(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Customer Name</label>
+          <input type="text" id="form-lead-name" required class="crm-input" placeholder="e.g. Rahul Sharma">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Phone Number (E.164 or 10-digit)</label>
+          <input type="text" id="form-lead-phone" required class="crm-input" placeholder="e.g. +918600079496">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Locality</label>
+            <select id="form-lead-loc" class="crm-select">
+              <option value="Besa">Besa</option>
+              <option value="Manish Nagar">Manish Nagar</option>
+              <option value="Wardha Road">Wardha Road</option>
+              <option value="Sonegaon">Sonegaon</option>
+              <option value="MIHAN">MIHAN</option>
+              <option value="Civil Lines">Civil Lines</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Configuration</label>
+            <select id="form-lead-bhk" class="crm-select">
+              <option value="1 BHK">1 BHK</option>
+              <option value="2 BHK" selected>2 BHK</option>
+              <option value="3 BHK">3 BHK</option>
+              <option value="4 BHK">4 BHK</option>
+              <option value="Plot">Plot</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Max Budget (INR)</label>
+            <input type="number" id="form-lead-budget" class="crm-input" value="6000000" placeholder="6000000">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Temperature</label>
+            <select id="form-lead-temp" class="crm-select">
+              <option value="warm" selected>⚡ Warm</option>
+              <option value="hot">🔥 Hot</option>
+              <option value="cold">❄️ Cold</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="App.closeModal('modal-new-lead')" class="crm-btn crm-btn-secondary">Cancel</button>
+          <button type="submit" class="crm-btn crm-btn-primary">Create Lead</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CSV Import Workflow Modal -->
+  <div id="modal-csv-import" class="crm-modal-backdrop">
+    <div class="crm-modal">
+      <div class="crm-card-header">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white">Import Leads from CSV</h3>
+        <button onclick="App.closeModal('modal-csv-import')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/50" onclick="document.getElementById('csv-file-input').click()">
+          <i data-lucide="upload-cloud" class="w-8 h-8 text-indigo-500 mx-auto mb-2"></i>
+          <div class="text-xs font-semibold text-slate-700 dark:text-slate-300">Click to browse or drop CSV file here</div>
+          <div class="text-[11px] text-slate-400 mt-1">Columns: Name, Phone, Location, BHK, Budget, Temperature</div>
+        </div>
+        <input type="file" id="csv-file-input" style="display: none;" onchange="App.handleCsvFile(event)" accept=".csv">
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Property Modal -->
+  <div id="modal-new-property" class="crm-modal-backdrop">
+    <div class="crm-modal max-w-lg">
+      <div class="crm-card-header">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white">Add Real Estate Property</h3>
+        <button onclick="App.closeModal('modal-new-property')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form onsubmit="App.handleCreatePropertySubmit(event)" class="p-6 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Project Name</label>
+          <input type="text" id="prop-form-name" required class="crm-input" placeholder="e.g. Greenwood Meadows">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Locality</label>
+            <input type="text" id="prop-form-loc" required class="crm-input" placeholder="e.g. Besa, Nagpur">
+          </div>
+          <div>
+            <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Configuration</label>
+            <input type="text" id="prop-form-bhk" required class="crm-input" placeholder="e.g. 2 BHK">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Price Display</label>
+            <input type="text" id="prop-form-pricedisp" required class="crm-input" placeholder="e.g. ₹48L – ₹55L">
+          </div>
+          <div>
+            <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Min Price (INR)</label>
+            <input type="number" id="prop-form-pricemin" required class="crm-input" placeholder="4800000">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Description & Amenities</label>
+          <textarea id="prop-form-desc" rows="2" class="crm-textarea" placeholder="Near Besa Square, Clubhouse, Swimming Pool, RERA approved"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="App.closeModal('modal-new-property')" class="crm-btn crm-btn-secondary">Cancel</button>
+          <button type="submit" class="crm-btn crm-btn-primary">Add Property</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- New Script Playbook Modal -->
+  <div id="new-script-modal" class="crm-modal-backdrop hidden">
+    <div class="crm-modal max-w-lg">
+      <div class="crm-card-header">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Create AI Training Script</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Add dialogue rules, custom human fillers, or objection playbooks</p>
+        </div>
+        <button onclick="App.closeNewScriptModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form onsubmit="event.preventDefault(); App.saveNewScript();" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Playbook Title</label>
+          <input type="text" id="script-modal-title" required class="crm-input" placeholder="e.g. Objections Handling - Budget Negotiation">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Domain</label>
+            <select id="script-modal-domain" class="crm-select">
+              <option value="real_estate">🏢 Real Estate</option>
+              <option value="clinic_hospital">🏥 Hospital & Clinic</option>
+              <option value="ecommerce">🛍️ E-Commerce</option>
+              <option value="education">🎓 Education & Admissions</option>
+              <option value="general_business">💼 General Business</option>
+              <option value="all">🌐 Universal (All Domains)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+            <select id="script-modal-category" class="crm-select">
+              <option value="conversation_script">Sales / Service Script</option>
+              <option value="objections">Objection Handling</option>
+              <option value="fillers">Fillers & Backchannels</option>
+              <option value="identity_verification">Name Verification</option>
+              <option value="persona">Persona & Tone</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="script-modal-active" checked class="rounded text-indigo-600">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Active on live calls</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800/60">
+            <input type="checkbox" id="script-modal-primary" class="rounded text-amber-600">
+            <span class="font-bold text-amber-800 dark:text-amber-300 text-[11px]">★ Set as Primary for Next Calls / Batch</span>
+          </label>
+          <span class="text-[10px] text-slate-400 font-mono">Tags: {customer_name}, {agent_name}, {company_name}</span>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-semibold text-slate-700 dark:text-slate-300">Instructions / Spoken Script</label>
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-slate-400">Template:</span>
+              <select onchange="if(this.value){App.insertScriptTemplate(this.value, 'new'); this.value='';}" class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded px-2 py-0.5 text-[11px] font-semibold cursor-pointer">
+                <option value="">⚡ Select Starter...</option>
+                <option value="fillers_empathy">Hindi/Hinglish Empathy Verbal Nods</option>
+                <option value="objection_pricing">Price & Budget Objection Rebuttal</option>
+                <option value="clinic_triage">Doctor Consultation OPD Protocol</option>
+                <option value="sales_closing">Site Visit / Appointment Closer</option>
+                <option value="wrong_number">Polite Wrong Number Pivot</option>
+              </select>
+            </div>
+          </div>
+          <textarea id="script-modal-content" rows="6" required class="crm-textarea font-mono text-xs leading-relaxed" placeholder="- Rule 1: Always use empathetic verbal nods..."></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="App.closeNewScriptModal()" class="crm-btn crm-btn-secondary">Cancel</button>
+          <button type="submit" class="crm-btn crm-btn-primary font-bold">Save Playbook</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Script Playbook Modal -->
+  <div id="edit-script-modal" class="crm-modal-backdrop hidden">
+    <div class="crm-modal max-w-lg">
+      <div class="crm-card-header">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Edit AI Training Script</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Modify instructions, target domain or categorization</p>
+        </div>
+        <button onclick="App.closeEditScriptModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form onsubmit="event.preventDefault(); App.saveEditedScript();" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="edit-script-id">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Playbook Title</label>
+          <input type="text" id="edit-script-title" required class="crm-input">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Domain</label>
+            <select id="edit-script-domain" class="crm-select">
+              <option value="real_estate">🏢 Real Estate</option>
+              <option value="clinic_hospital">🏥 Hospital & Clinic</option>
+              <option value="ecommerce">🛍️ E-Commerce</option>
+              <option value="education">🎓 Education & Admissions</option>
+              <option value="general_business">💼 General Business</option>
+              <option value="all">🌐 Universal (All Domains)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+            <select id="edit-script-category" class="crm-select">
+              <option value="conversation_script">Sales / Service Script</option>
+              <option value="objections">Objection Handling</option>
+              <option value="fillers">Fillers & Backchannels</option>
+              <option value="identity_verification">Name Verification</option>
+              <option value="persona">Persona & Tone</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="edit-script-active" class="rounded text-indigo-600">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Active on live calls</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800/60">
+            <input type="checkbox" id="edit-script-primary" class="rounded text-amber-600">
+            <span class="font-bold text-amber-800 dark:text-amber-300 text-[11px]">★ Primary Script for Next Calls / Batch</span>
+          </label>
+          <span class="text-[10px] text-slate-400 font-mono">Tags: {customer_name}, {agent_name}, {company_name}</span>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-semibold text-slate-700 dark:text-slate-300">Instructions / Spoken Script</label>
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-slate-400">Template:</span>
+              <select onchange="if(this.value){App.insertScriptTemplate(this.value, 'edit'); this.value='';}" class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded px-2 py-0.5 text-[11px] font-semibold cursor-pointer">
+                <option value="">⚡ Append Template...</option>
+                <option value="fillers_empathy">Hindi/Hinglish Empathy Verbal Nods</option>
+                <option value="objection_pricing">Price & Budget Objection Rebuttal</option>
+                <option value="clinic_triage">Doctor Consultation OPD Protocol</option>
+                <option value="sales_closing">Site Visit / Appointment Closer</option>
+                <option value="wrong_number">Polite Wrong Number Pivot</option>
+              </select>
+            </div>
+          </div>
+          <textarea id="edit-script-content" rows="7" required class="crm-textarea font-mono text-xs leading-relaxed"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="App.closeEditScriptModal()" class="crm-btn crm-btn-secondary">Cancel</button>
+          <button type="submit" class="crm-btn crm-btn-primary font-bold">Update Playbook</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Book Site Visit Modal -->
+  <div id="modal-book-visit" class="crm-modal-backdrop">
+    <div class="crm-modal max-w-md">
+      <div class="crm-card-header">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white">Book Site Visit</h3>
+        <button onclick="App.closeModal('modal-book-visit')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form onsubmit="App.handleBookVisitSubmit(event)" class="p-6 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Location / Project</label>
+          <input type="text" id="visit-form-loc" required class="crm-input" placeholder="e.g. Greenwood Meadows, Besa">
+        </div>
+        <div>
+          <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Visit Date & Time</label>
+          <input type="datetime-local" id="visit-form-dt" required class="crm-input">
+        </div>
+        <div>
+          <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Assigned Salesperson</label>
+          <input type="text" id="visit-form-salesperson" value="Priya" class="crm-input">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="App.closeModal('modal-book-visit')" class="crm-btn crm-btn-secondary">Cancel</button>
+          <button type="submit" class="crm-btn crm-btn-primary">Confirm Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create New Campaign Modal -->
+  <div id="modal-new-campaign" class="crm-modal-backdrop">
+    <div class="crm-modal max-w-2xl">
+      <div class="crm-card-header">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Create AI Voice Campaign</h3>
+          <p class="text-xs text-slate-500">Configure outbound batch dialing campaign and configure targeted leads</p>
+        </div>
+        <button onclick="App.closeModal('modal-new-campaign')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form onsubmit="App.handleCreateCampaignSubmit(event)" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Campaign Name</label>
+          <input type="text" id="cmp-form-name" required class="crm-input" placeholder="e.g. Besa 2 BHK Diwali Special">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Target Locality</label>
+            <select id="cmp-form-loc" class="crm-select">
+              <option value="All Localities">All Nagpur Localities</option>
+              <option value="Besa" selected>Besa</option>
+              <option value="Manish Nagar">Manish Nagar</option>
+              <option value="Wardha Road">Wardha Road</option>
+              <option value="Sonegaon">Sonegaon</option>
+              <option value="MIHAN">MIHAN</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Campaign Goal</label>
+            <select id="cmp-form-goal" class="crm-select">
+              <option value="site_visit_booking" selected>Site Visit Booking</option>
+              <option value="qualification">Lead Qualification</option>
+              <option value="follow_up">Follow-up Reminder</option>
+              <option value="property_intro">New Launch Announcement</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Max Concurrency</label>
+            <select id="cmp-form-concurrency" class="crm-select">
+              <option value="1">1 Line (Sequential)</option>
+              <option value="2">2 Concurrent Lines</option>
+              <option value="3" selected>3 Concurrent Lines (Max Concurrency)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">Campaign Description & Script Prompt</label>
+          <textarea id="cmp-form-desc" rows="2" class="crm-textarea" placeholder="Focus on Greenwood Meadows 2 BHK pricing and encourage scheduling Saturday site visits."></textarea>
+        </div>
+
+        <!-- Initial Leads Selection & Custom Add Section -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <i data-lucide="phone-outgoing" class="w-4 h-4 text-indigo-500"></i>
+                Leads to Call Concurrently
+              </div>
+              <p class="text-[11px] text-slate-500">Add up to 3 leads to call concurrently through Vobiz SIP Trunk + Gemini Live</p>
+            </div>
+            <div class="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+              <span id="cmp-form-selected-count">0</span> / 3 Leads
+            </div>
+          </div>
+
+          <!-- Staged Leads Preview List -->
+          <div id="cmp-staged-leads-container" class="space-y-1.5 min-h-[44px]">
+            <div class="text-xs text-slate-400 text-center py-2 italic bg-white dark:bg-slate-950 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
+              No leads added yet. Type a phone number below or pick from your pipeline.
+            </div>
+          </div>
+
+          <!-- Lead Input Options -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
+            <div class="flex items-center gap-2 mb-3">
+              <button type="button" id="btn-tab-custom-lead" onclick="App.switchNewCampaignLeadTab('custom')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm flex items-center gap-1.5">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                <span>+ Add Custom Lead</span>
+              </button>
+              <button type="button" id="btn-tab-pipeline-lead" onclick="App.switchNewCampaignLeadTab('pipeline')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center gap-1.5">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>Pick From Pipeline</span>
+              </button>
+            </div>
+
+            <!-- Tab 1: Quick Add Custom Lead -->
+            <div id="tab-new-campaign-custom" class="space-y-2 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                Enter Phone Number to Dial Real-time
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input type="text" id="cmp-custom-name" placeholder="Lead Name (e.g. Rahul Sharma)" class="crm-input text-xs py-1.5">
+                <input type="tel" id="cmp-custom-phone" placeholder="Phone (e.g. +919823012345)" class="crm-input text-xs py-1.5 font-mono">
+                <input type="text" id="cmp-custom-loc" placeholder="Locality (e.g. Besa)" class="crm-input text-xs py-1.5">
+              </div>
+              <div class="flex justify-end pt-1">
+                <button type="button" onclick="App.addCustomLeadToNewCampaign()" class="crm-btn crm-btn-primary crm-btn-sm text-xs py-1 px-3">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  <span>Add Lead to Call List</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab 2: Pick from Pipeline -->
+            <div id="tab-new-campaign-pipeline" class="hidden space-y-2">
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="cmp-form-lead-search" oninput="App.filterNewCampaignLeadsPicker()" placeholder="Filter pipeline leads by name, locality or budget..." class="crm-input pl-8 py-1.5 text-xs">
+              </div>
+              <div id="cmp-form-leads-picker-container" class="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+                <!-- Checkbox list of existing CRM leads -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start Immediately Checkbox -->
+        <label class="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 cursor-pointer shadow-sm hover:border-emerald-300">
+          <input type="checkbox" id="cmp-form-start-immediate" checked class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+          <div class="leading-tight">
+            <div class="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Immediately start calling added leads concurrently upon creation
+            </div>
+            <div class="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5">
+              Opens the Live Campaign Monitor and dials all added leads at the same time (t ≈ 0s).
+            </div>
+          </div>
+        </label>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="App.closeModal('modal-new-campaign')" class="crm-btn crm-btn-secondary text-xs">Cancel</button>
+          <button type="button" onclick="App.handleCreateCampaignSubmit(event, false)" class="crm-btn crm-btn-secondary text-xs">Save as Draft</button>
+          <button type="submit" class="crm-btn crm-btn-success text-xs font-bold py-2 px-4 shadow-sm flex items-center gap-1.5">
+            <i data-lucide="phone-outgoing" class="w-4 h-4"></i>
+            <span id="cmp-submit-btn-text">Create & Start Calling Now</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Existing or Custom Leads to Active Campaign Modal -->
+  <div id="modal-campaign-add-leads" class="crm-modal-backdrop">
+    <div class="crm-modal max-w-xl">
+      <div class="crm-card-header">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Add Leads to Campaign</h3>
+          <p class="text-xs text-slate-500">Add custom leads or select pipeline leads to attach to this campaign (Max 3 lines)</p>
+        </div>
+        <button onclick="App.closeModal('modal-campaign-add-leads')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4 text-xs">
+        <!-- Quick Add Custom Lead Inside Campaign -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+          <div class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5 text-indigo-500"></i>
+            <span>Add Custom Phone Number to This Campaign</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input type="text" id="cmp-add-custom-name" placeholder="Customer Name" class="crm-input text-xs py-1.5">
+            <input type="tel" id="cmp-add-custom-phone" placeholder="+91..." class="crm-input text-xs py-1.5 font-mono">
+            <input type="text" id="cmp-add-custom-loc" placeholder="Locality" class="crm-input text-xs py-1.5">
+          </div>
+          <div class="flex justify-end pt-1">
+            <button type="button" onclick="App.addCustomLeadToActiveCampaign()" class="crm-btn crm-btn-primary crm-btn-sm text-xs py-1 px-3">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Add Custom Lead</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2">
+          <div class="font-semibold text-slate-700 dark:text-slate-300">Or Select from Existing Pipeline:</div>
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="cmp-add-leads-search" oninput="App.filterCampaignAddLeadsPicker()" placeholder="Search CRM leads by name, locality, budget..." class="crm-input pl-8 py-1.5 text-xs">
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="cmp-add-select-all" onchange="App.toggleCampaignAddAllLeads(this)" class="rounded text-indigo-600">
+              <span>Select All Available</span>
+            </label>
+            <div><strong id="cmp-add-selected-count">0</strong> selected</div>
+          </div>
+
+          <div id="cmp-add-leads-list-container" class="max-h-52 overflow-y-auto space-y-1.5 pr-1 border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-900">
+            <!-- Available leads to add -->
+          </div>
+        </div>
+
+        <!-- Immediate Dialing Checkbox -->
+        <label class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 cursor-pointer">
+          <input type="checkbox" id="cmp-add-start-immediate" checked class="rounded text-emerald-600">
+          <span class="text-xs font-semibold text-emerald-900 dark:text-emerald-200">Immediately start dialing after adding leads</span>
+        </label>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="App.closeModal('modal-campaign-add-leads')" class="crm-btn crm-btn-secondary">Cancel</button>
+          <button type="button" onclick="App.confirmAddLeadsToCampaign()" class="crm-btn crm-btn-success font-bold flex items-center gap-1.5">
+            <i data-lucide="phone-outgoing" class="w-4 h-4"></i>
+            <span>Attach & Dial Leads</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import CSV Directly to Active Campaign Modal -->
+  <div id="modal-campaign-csv-import" class="crm-modal-backdrop">
+    <div class="crm-modal max-w-md">
+      <div class="crm-card-header">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Import CSV into Campaign</h3>
+          <p class="text-xs text-slate-500">Upload CSV leads and automatically link them to this campaign</p>
+        </div>
+        <button onclick="App.closeModal('modal-campaign-csv-import')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="border-2 border-dashed border-indigo-300 dark:border-indigo-800 rounded-xl p-6 text-center cursor-pointer hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors" onclick="document.getElementById('cmp-csv-file-input').click()">
+          <i data-lucide="file-spreadsheet" class="w-8 h-8 text-indigo-500 mx-auto mb-2"></i>
+          <div class="text-xs font-semibold text-slate-700 dark:text-slate-300">Click to upload CSV into this campaign</div>
+          <div class="text-[11px] text-slate-400 mt-1">Columns: Name, Phone, Location, BHK, Budget</div>
+        </div>
+        <input type="file" id="cmp-csv-file-input" style="display: none;" onchange="App.handleCampaignCsvFile(event)" accept=".csv">
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. LIVE CALL WIDGET PANEL -->
+  <!-- ========================================================================= -->
+  <div id="live-calling-widget" class="live-calling-panel">
+    <div class="p-3.5 bg-indigo-950 text-white flex items-center justify-between border-b border-indigo-800/50">
+      <div class="flex items-center gap-2.5">
+        <div class="pulse-dot-green"></div>
+        <div class="leading-tight">
+          <div id="live-call-customer-name" class="font-bold text-xs">Rahul Sharma</div>
+          <div id="live-call-status-label" class="text-[10px] text-emerald-300 font-medium">Connecting SIP...</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="audio-waveform">
+          <div class="audio-bar"></div>
+          <div class="audio-bar"></div>
+          <div class="audio-bar"></div>
+          <div class="audio-bar"></div>
+          <div class="audio-bar"></div>
+          <div class="audio-bar"></div>
+        </div>
+        <span id="live-call-timer" class="font-mono text-xs font-bold text-indigo-200">00:00</span>
+      </div>
+    </div>
+
+    <!-- Live Turns Feed -->
+    <div id="live-transcript-feed" class="p-3 max-h-56 overflow-y-auto bg-slate-50 dark:bg-slate-900 flex flex-col space-y-2 text-xs">
+      <div class="text-center text-slate-400 py-4">Connecting to Vobiz SIP Trunk & Priya AI...</div>
+    </div>
+
+    <!-- Footer Controls -->
+    <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex items-center justify-between">
+      <span class="text-[10px] text-slate-400 font-medium">Gemini 3.1 Live Audio</span>
+      <button onclick="App.hangupActiveCall()" class="crm-btn crm-btn-danger crm-btn-sm text-xs py-1 px-3">
+        <i data-lucide="phone-off" class="w-3.5 h-3.5"></i>
+        End Call
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4B. LIVE 3-CONCURRENT CAMPAIGN MONITOR PANEL -->
+  <!-- ========================================================================= -->
+  <div id="live-campaign-panel" class="hidden fixed bottom-6 right-6 z-50 w-96 max-w-[95vw] bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+    <!-- Header -->
+    <div class="p-4 bg-gradient-to-r from-indigo-900 to-slate-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div id="live-cmp-ping-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+        <div>
+          <div id="live-cmp-name" class="font-bold text-xs sm:text-sm">3 Lead Concurrency Test</div>
+          <div class="flex items-center gap-2 text-[11px] text-indigo-200 mt-0.5">
+            <span>Status: <strong id="live-cmp-status" class="uppercase font-bold text-emerald-400">RUNNING</strong></span>
+            <span>•</span>
+            <span>Lines: <strong id="live-cmp-lines">3 / 3</strong></span>
+          </div>
+        </div>
+      </div>
+      <button onclick="App.closeLiveCampaignMonitor()" class="text-slate-400 hover:text-white" title="Minimize / Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Concurrency Safety Meter -->
+    <div class="px-4 py-2.5 bg-indigo-50/80 dark:bg-indigo-950/40 border-b border-indigo-100 dark:border-indigo-900/50 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
+        <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+        <span>Active Calls:</span>
+        <span id="live-cmp-active-meter" class="font-bold text-indigo-600 dark:text-indigo-400">0 / 3</span>
+      </div>
+      <div class="text-[11px] text-slate-500 font-mono">
+        Peak Observed: <strong id="live-cmp-peak" class="text-slate-700 dark:text-slate-300">0</strong> / 3
+      </div>
+    </div>
+
+    <!-- Active Concurrent Calls List -->
+    <div id="live-cmp-leads-list" class="p-3 max-h-60 overflow-y-auto space-y-2 text-xs bg-slate-50 dark:bg-slate-950">
+      <div class="text-center text-slate-400 py-4">Waiting for dialer dispatch...</div>
+    </div>
+
+    <!-- Footer Stats & Controls -->
+    <div class="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+      <div class="text-[11px] text-slate-500">
+        <span id="live-cmp-summary-text">3 total • 0 completed • 0 failed</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="live-cmp-stop-btn" onclick="App.stopActiveCampaignFromMonitor()" class="crm-btn crm-btn-danger crm-btn-sm text-xs py-1 px-2.5">
+          <i data-lucide="square" class="w-3 h-3"></i>
+          Stop
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 5. COMMAND PALETTE (Ctrl + K) -->
+  <!-- ========================================================================= -->
+  <div id="command-palette-modal" class="command-palette-backdrop" onclick="App.closeCommandPalette(event)">
+    <div class="command-palette-box" onclick="event.stopPropagation()">
+      <div class="relative">
+        <i data-lucide="search" class="w-5 h-5 absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" id="command-palette-input" oninput="App.handleCommandPaletteSearch(this.value)" class="command-search-input pl-14" placeholder="Type a command or search leads, properties, calls...">
+      </div>
+      <div id="command-palette-results" class="command-search-results">
+        <!-- Dynamic search results -->
+      </div>
+      <div class="px-5 py-2.5 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+        <span>Press <kbd class="font-mono bg-white dark:bg-slate-800 border rounded px-1">ESC</kbd> to close</span>
+        <span><kbd class="font-mono bg-white dark:bg-slate-800 border rounded px-1">&uarr;&darr;</kbd> Navigate</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Application Logic -->
+  <script src="/static/app.js?v=20260913_01"></script>
+</body>
+</html>
