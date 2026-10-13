@@ -34,10 +34,34 @@ def verify_password(password: str, stored_hash: str) -> bool:
     except Exception:
         return False
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///nagpur_estates.db").strip()
-# Handle older 'postgres://' scheme provided by platforms like Railway/Heroku
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+def _normalize_database_url() -> str:
+    raw_url = os.getenv("DATABASE_URL", "").strip().strip("\"'").strip()
+    
+    # If empty, None, or unresolved template
+    if not raw_url or raw_url.lower() in ("none", "null", ""):
+        return "sqlite:///nagpur_estates.db"
+    if raw_url.startswith("${{"):
+        logger.warning(f"DATABASE_URL contains unresolved template '{raw_url}'. Falling back to SQLite.")
+        return "sqlite:///nagpur_estates.db"
+
+    # In case user pasted key=value into the environment variable value field
+    if "=" in raw_url and not (raw_url.startswith("sqlite") or raw_url.startswith("postgres")):
+        raw_url = raw_url.split("=", 1)[1].strip().strip("\"'").strip()
+
+    # Handle older 'postgres://' scheme provided by platforms like Railway/Heroku
+    if raw_url.startswith("postgres://"):
+        raw_url = raw_url.replace("postgres://", "postgresql://", 1)
+
+    # Validate with SQLAlchemy make_url
+    try:
+        from sqlalchemy.engine import make_url
+        make_url(raw_url)
+        return raw_url
+    except Exception as exc:
+        logger.warning(f"Could not parse DATABASE_URL '{raw_url}': {exc}. Falling back to SQLite.")
+        return "sqlite:///nagpur_estates.db"
+
+DATABASE_URL = _normalize_database_url()
 
 # Configure engine
 connect_args = {}
